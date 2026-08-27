@@ -5,6 +5,7 @@ import { ToastProvider } from './components/ui/Toast';
 import { AppRoutes } from './routes/AppRoutes';
 import { useSeedDemoData } from './hooks/useSeedDemoData';
 
+
 function SeedGate({ children }: { children: React.ReactNode }) {
   useSeedDemoData();
   return <>{children}</>;
@@ -22,6 +23,7 @@ export default function App() {
           </GmailProvider>
         </AuthProvider>
       </ToastProvider>
+      
     </BrowserRouter>
   );
 }
