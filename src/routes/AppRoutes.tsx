@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { ProtectedRoute } from './ProtectedRoute';
+import { AdminRoute } from './AdminRoute';
 import { LoadingState } from '../components/ui/LoadingState';
 
 const Login = lazy(() => import('../pages/Login'));
@@ -15,6 +16,7 @@ const Analytics = lazy(() => import('../pages/Analytics'));
 const Integrations = lazy(() => import('../pages/Integrations'));
 const Settings = lazy(() => import('../pages/Settings'));
 const Profile = lazy(() => import('../pages/Profile'));
+const Admin = lazy(() => import('../pages/Admin'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy'));
 
@@ -37,8 +39,10 @@ export function AppRoutes() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/profile" element={<Profile />} />
-            
+                        <Route path="/profile" element={<Profile />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<Admin />} />
+            </Route>
           </Route>
         </Route>
 
