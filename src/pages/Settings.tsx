@@ -19,7 +19,7 @@ function SettingsSection({ title, children }: { title: string; children: React.R
 }
 
 export default function Settings() {
-  const { user, logout, refresh } = useAuth();
+  const { user, logout, refresh, isAdmin, setRole } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -128,10 +128,31 @@ export default function Settings() {
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Security">
+      {/* dcklcd */}
+            <SettingsSection title="Security">
         <p className="text-sm text-muted">CareerFlow uses Local Authentication. Your credentials are hashed and stored only in this browser — not on any server.</p>
+
+        <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card-secondary p-3">
+          <span>
+            <span className="block text-sm text-white">Local Admin Mode</span>
+            <span className="block text-xs text-muted">
+              Grants access to /admin in this browser only. Not real server-side authorization.
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            checked={isAdmin}
+            onChange={(e) => {
+              setRole(e.target.checked ? 'admin' : 'user');
+              showToast(e.target.checked ? 'Admin access enabled for this browser.' : 'Admin access removed.', 'success');
+            }}
+            className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-card-secondary border border-border checked:bg-primary relative transition-colors before:absolute before:left-0.5 before:top-0.5 before:h-3.5 before:w-3.5 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-4"
+          />
+        </label>
+
         <Button variant="secondary" onClick={handleLogout}>Logout</Button>
       </SettingsSection>
+      {/* dekml */}
 
       <ConfirmDialog
         open={clearOpen}
