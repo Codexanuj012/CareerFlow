@@ -1,3 +1,5 @@
+export type UserRole = 'user' | 'admin';
+
 export interface LocalUser {
   id: string;
   name: string;
@@ -5,6 +7,7 @@ export interface LocalUser {
   passwordHash: string;
   createdAt: string;
   avatarColor: string;
+  role: UserRole;
 }
 
 export interface AuthSession {

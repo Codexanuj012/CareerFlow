@@ -5,11 +5,13 @@ import type { LocalUser } from '../types/auth';
 interface AuthContextValue {
   user: LocalUser | null;
   loading: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: (name: string, email: string) => void;
   logout: () => void;
   refresh: () => void;
+  setRole: (role: 'user' | 'admin') => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -44,13 +46,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh();
   }, [refresh]);
 
-  const logout = useCallback(() => {
+    const logout = useCallback(() => {
     authService.logout();
     setUser(null);
   }, []);
 
+  const setRole = useCallback(
+    (role: 'user' | 'admin') => {
+      if (!user) return;
+      authService.setRole(user.id, role);
+      refresh();
+    },
+    [user, refresh]
+  );
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, loginWithGoogle, logout, refresh }}>
+    <AuthContext.Provider
+      value={{ user, loading, isAdmin: user?.role === 'admin', login, signup, loginWithGoogle, logout, refresh, setRole }}
+    >
       {children}
     </AuthContext.Provider>
   );
