@@ -1,4 +1,4 @@
-import { getOutreach, getContacts } from './storageService';
+import { getOutreach, getContacts, getImports } from './storageService';
 import type { OutreachRecord } from '../types/outreach';
 
 export interface DashboardStats {
@@ -85,4 +85,63 @@ export function recentOutreach(limit = 5): OutreachRecord[] {
   return getOutreach()
     .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
     .slice(0, limit);
+}
+
+
+// New file add
+
+export function csvContactCount(): number {
+  return getContacts().filter((c) => c.source === 'csv').length;
+}
+
+export function latestImportDate(): string | null {
+  const imports = getImports();
+  if (imports.length === 0) return null;
+  return imports.slice().sort((a, b) => new Date(b.importedAt).getTime() - new Date(a.importedAt).getTime())[0]
+    .importedAt;
+}
+
+export interface SourceBreakdown {
+  manual: number;
+  csv: number;
+  demo: number;
+}
+
+export function contactsBySource(): SourceBreakdown {
+  const contacts = getContacts();
+  return {
+    manual: contacts.filter((c) => (c.source ?? 'manual') === 'manual').length,
+    csv: contacts.filter((c) => c.source === 'csv').length,
+    demo: contacts.filter((c) => c.source === 'demo').length,
+  };
+}
+
+export interface AdminStats {
+  totalContacts: number;
+  totalImports: number;
+  totalRowsImported: number;
+  contactsWithEmail: number;
+  duplicateContacts: number;
+  lastImport: string | null;
+}
+
+export function computeAdminStats(): AdminStats {
+  const contacts = getContacts();
+  const imports = getImports();
+  const emailCounts = new Map<string, number>();
+  for (const c of contacts) {
+    const key = c.email.trim().toLowerCase();
+    if (!key) continue;
+    emailCounts.set(key, (emailCounts.get(key) ?? 0) + 1);
+  }
+  const duplicateContacts = Array.from(emailCounts.values()).filter((count) => count > 1).length;
+
+  return {
+    totalContacts: contacts.length,
+    totalImports: imports.length,
+    totalRowsImported: imports.reduce((sum, i) => sum + i.addedRows + i.updatedRows, 0),
+    contactsWithEmail: contacts.filter((c) => c.email.trim() !== '').length,
+    duplicateContacts,
+    lastImport: latestImportDate(),
+  };
 }

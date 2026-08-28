@@ -2,6 +2,7 @@ import type { LocalUser } from '../types/auth';
 import type { Contact } from '../types/contact';
 import type { OutreachRecord } from '../types/outreach';
 import type { GmailProfile } from '../types/gmail';
+import type { ImportRecord } from '../types/csv';
 
 const KEYS = {
   users: 'careerflow_users',
@@ -11,6 +12,7 @@ const KEYS = {
   gmail: 'careerflow_gmail_profile',
   settings: 'careerflow_settings',
   seeded: 'careerflow_seeded_v1',
+  imports: 'careerflow_imports',
 } as const;
 
 function read<T>(key: string, fallback: T): T {
@@ -23,8 +25,32 @@ function read<T>(key: string, fallback: T): T {
   }
 }
 
+// function write<T>(key: string, value: T): void {
+//   localStorage.setItem(key, JSON.stringify(value));
+// }
 function write<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value));
+}
+
+// Like write(), but never throws — used for bulk operations (e.g. CSV import)
+// where localStorage can realistically run out of quota. Returns a result the
+// caller can show to the user instead of letting the app crash.
+function safeWrite<T>(key: string, value: T): { success: boolean; error?: string } {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return { success: true };
+  } catch (e) {
+    const isQuotaError =
+      e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+    return {
+      success: false,
+      error: isQuotaError
+        ? 'Local storage is full. Try exporting and clearing old data, or import a smaller file.'
+        : e instanceof Error
+          ? e.message
+          : 'Could not save data locally.',
+    };
+  }
 }
 
 // Users
@@ -49,6 +75,10 @@ export function addContact(contact: Contact): void {
   const contacts = getContacts();
   contacts.unshift(contact);
   saveContacts(contacts);
+}
+// Quota-safe variant used by bulk CSV import, which can add many rows at once.
+export function saveContactsSafe(contacts: Contact[]): { success: boolean; error?: string } {
+  return safeWrite(KEYS.contacts, contacts);
 }
 export function updateContact(id: string, patch: Partial<Contact>): void {
   const contacts = getContacts().map((c) => (c.id === id ? { ...c, ...patch } : c));
@@ -94,6 +124,24 @@ export function saveSession(session: { userId: string; name: string; email: stri
     write(KEYS.session, session);
   }
 }
+// Imports (CSV import metadata only — the original file is never stored)
+export function getImports(): ImportRecord[] {
+  return read<ImportRecord[]>(KEYS.imports, []);
+}
+export function saveImports(imports: ImportRecord[]): void {
+  write(KEYS.imports, imports);
+}
+export function addImport(record: ImportRecord): void {
+  const imports = getImports();
+  imports.unshift(record);
+  saveImports(imports);
+}
+export function getImport(id: string): ImportRecord | undefined {
+  return getImports().find((i) => i.id === id);
+}
+export function deleteImport(id: string): void {
+  saveImports(getImports().filter((i) => i.id !== id));
+}
 
 // Settings
 export interface AppSettings {
@@ -122,6 +170,7 @@ export function exportData(): string {
     contacts: getContacts(),
     outreach: getOutreach(),
     settings: getSettings(),
+    imports: getImports(),
     gmail: getGmailProfile(),
   };
   return JSON.stringify(payload, null, 2);
@@ -130,8 +179,12 @@ export function exportData(): string {
 export function importData(json: string): { success: boolean; error?: string } {
   try {
     const parsed = JSON.parse(json);
+    if (!parsed || typeof parsed !== 'object') {
+      return { success: false, error: 'This file does not look like a CareerFlow export.' };
+    }
     if (Array.isArray(parsed.contacts)) saveContacts(parsed.contacts);
     if (Array.isArray(parsed.outreach)) saveOutreach(parsed.outreach);
+    if (Array.isArray(parsed.imports)) saveImports(parsed.imports);
     if (parsed.settings) saveSettings(parsed.settings);
     return { success: true };
   } catch (e) {

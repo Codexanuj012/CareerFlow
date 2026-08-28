@@ -26,13 +26,14 @@ export async function signup(name: string, email: string, password: string): Pro
     return { success: false, error: 'An account with this email already exists.' };
   }
   const passwordHash = await hashPassword(password);
-  const user: LocalUser = {
+   const user: LocalUser = {
     id: genId(),
     name: name.trim(),
     email: normalizedEmail,
     passwordHash,
     createdAt: new Date().toISOString(),
     avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    role: 'user',
   };
   storage.saveUsers([...users, user]);
   storage.saveSession({ userId: user.id, name: user.name, email: user.email });
@@ -55,13 +56,14 @@ export function loginWithGoogleProfile(name: string, email: string): void {
   const normalizedEmail = email.trim().toLowerCase();
   let user = users.find((u) => u.email === normalizedEmail);
   if (!user) {
-    user = {
+       user = {
       id: genId(),
       name,
       email: normalizedEmail,
       passwordHash: '',
       createdAt: new Date().toISOString(),
       avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+      role: 'user',
     };
     storage.saveUsers([...users, user]);
   }
@@ -75,13 +77,23 @@ export function logout(): void {
 export function getCurrentUser(): LocalUser | null {
   const session = storage.getSession();
   if (!session) return null;
-  return storage.getUsers().find((u) => u.id === session.userId) ?? null;
+  const user = storage.getUsers().find((u) => u.id === session.userId) ?? null;
+  // Defensive default for accounts created before the role field existed.
+  if (user && !user.role) return { ...user, role: 'user' };
+  return user;
 }
 
 export function isAuthenticated(): boolean {
   return storage.getSession() !== null;
 }
 
+// Local Admin Mode: promotes/demotes the CURRENT browser's account only.
+// This is not real server-side authorization — see Settings > Security
+// and the note shown on the Admin page.
+export function setRole(userId: string, role: LocalUser['role']): void {
+  const users = storage.getUsers().map((u) => (u.id === userId ? { ...u, role } : u));
+  storage.saveUsers(users);
+}
 export function updateProfile(patch: { name?: string; email?: string }): void {
   const session = storage.getSession();
   if (!session) return;
