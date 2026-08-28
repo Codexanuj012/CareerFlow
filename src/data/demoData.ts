@@ -3,11 +3,11 @@ import type { OutreachRecord } from '../types/outreach';
 
 // Fictional demo data only — no real recruiter emails.
 export const DEMO_CONTACTS: Omit<Contact, 'id' | 'createdAt'>[] = [
-  { name: 'Sarah Mehta', role: 'Talent Acquisition', company: 'Acme Technologies', email: 'sarah@example.com', notes: 'Met at campus drive, friendly and responsive.' },
-  { name: 'John Sharma', role: 'Technical Recruiter', company: 'Demo Labs', email: 'john@example.com', notes: 'Focuses on frontend roles.' },
-  { name: 'Priya Nair', role: 'Engineering Manager', company: 'Nimbus Cloud', email: 'priya@example.com', notes: 'Referred by a friend.' },
-  { name: 'Alex Chen', role: 'HR Business Partner', company: 'Bright Systems', email: 'alex@example.com', notes: '' },
-  { name: 'Meera Iyer', role: 'People Ops', company: 'Vertex Softworks', email: 'meera@example.com', notes: 'Prefers async follow-ups.' },
+  { name: 'Sarah Mehta', role: 'Talent Acquisition', company: 'Acme Technologies', email: 'sarah@example.com', notes: 'Met at campus drive, friendly and responsive.', source: 'demo' },
+  { name: 'John Sharma', role: 'Technical Recruiter', company: 'Demo Labs', email: 'john@example.com', notes: 'Focuses on frontend roles.', source: 'demo' },
+  { name: 'Priya Nair', role: 'Engineering Manager', company: 'Nimbus Cloud', email: 'priya@example.com', notes: 'Referred by a friend.', source: 'demo' },
+  { name: 'Alex Chen', role: 'HR Business Partner', company: 'Bright Systems', email: 'alex@example.com', notes: '', source: 'demo' },
+  { name: 'Meera Iyer', role: 'People Ops', company: 'Vertex Softworks', email: 'meera@example.com', notes: 'Prefers async follow-ups.', source: 'demo' },
 ];
 
 export function buildDemoOutreach(contacts: Contact[]): Omit<OutreachRecord, 'id'>[] {

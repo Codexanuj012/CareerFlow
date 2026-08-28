@@ -1,15 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
-import { seedDemoDataIfNeeded } from '../../utils/seedDemoData';
 
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-  useEffect(() => {
-    seedDemoDataIfNeeded();
-  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
