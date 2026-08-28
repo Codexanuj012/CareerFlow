@@ -6,6 +6,7 @@ import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { formatDate } from '../../utils/formatDate';
 import { emailsSentTo, lastContactedAt } from '../../services/contactService';
+import { SourceBadge } from './SourceBadge';
 
 interface ContactTableProps {
   contacts: Contact[];
@@ -39,6 +40,7 @@ export function ContactTable({ contacts, onAddClick }: ContactTableProps) {
               <Th>Name</Th>
               <Th>Company</Th>
               <Th>Email</Th>
+              <Th>Source</Th>
               <Th>Last Contacted</Th>
               <Th>Emails Sent</Th>
               <Th>Status</Th>
@@ -58,6 +60,7 @@ export function ContactTable({ contacts, onAddClick }: ContactTableProps) {
                   </Td>
                   <Td className="text-muted">{c.company || '—'}</Td>
                   <Td className="text-muted">{c.email}</Td>
+                  <Td><SourceBadge source={c.source} /></Td>
                   <Td className="text-muted">{last ? formatDate(last) : '—'}</Td>
                   <Td>{sent}</Td>
                   <Td><ContactStatus email={c.email} /></Td>
@@ -87,6 +90,9 @@ export function ContactTable({ contacts, onAddClick }: ContactTableProps) {
                   </Link>
                   <p className="truncate text-xs text-muted">{c.company}</p>
                   <p className="truncate text-xs text-muted">{c.email}</p>
+                  <div className="mt-1"><SourceBadge source={c.source} /></div>
+
+                  
                 </div>
                 <ContactStatus email={c.email} />
               </div>
